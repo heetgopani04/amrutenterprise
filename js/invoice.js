@@ -221,27 +221,60 @@ const InvoiceGenerator = {
       currentY += 4;
     }
 
-    // Grand Total Summary Box (Green Theme)
-    const grandTotal = parseFloat(sale.total || 0).toFixed(2);
-    const summaryBoxWidth = 72;
+    // Summary Box (Green Theme) showing Subtotal, Discount, and Grand Total
+    const computedItemsSubtotal = (sale.items || []).reduce((acc, i) => acc + (parseFloat(i.total) || (parseFloat(i.price) * (i.qty || 1)) || 0), 0);
+    const subtotal = sale.subtotal !== undefined ? parseFloat(sale.subtotal) : computedItemsSubtotal;
+    let discountAmount = sale.discountAmount !== undefined ? parseFloat(sale.discountAmount) : 0;
+    if (discountAmount === 0 && sale.discountValue && parseFloat(sale.discountValue) > 0) {
+      if (sale.discountType === 'percentage') {
+        discountAmount = (subtotal * parseFloat(sale.discountValue)) / 100;
+      } else {
+        discountAmount = parseFloat(sale.discountValue);
+      }
+    }
+    const grandTotal = parseFloat(sale.total !== undefined ? sale.total : Math.max(0, subtotal - discountAmount));
+
+    const summaryBoxWidth = 78;
     const summaryBoxX = pageWidth - 14 - summaryBoxWidth;
+    const boxHeight = 28;
 
     doc.setFillColor(...bgGreenLight);
     doc.setDrawColor(...borderGreen);
     doc.setLineWidth(0.5);
-    doc.roundedRect(summaryBoxX, currentY, summaryBoxWidth, 22, 2, 2, 'FD');
+    doc.roundedRect(summaryBoxX, currentY, summaryBoxWidth, boxHeight, 2, 2, 'FD');
 
+    // Subtotal Row
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(71, 85, 105);
+    doc.text('Subtotal:', summaryBoxX + 6, currentY + 6.5);
+    doc.text(`Rs. ${subtotal.toFixed(2)}`, summaryBoxX + summaryBoxWidth - 6, currentY + 6.5, { align: 'right' });
+
+    // Discount Row
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(220, 38, 38);
+    const isPercent = sale.discountType === 'percentage' && parseFloat(sale.discountValue || 0) > 0;
+    const discountLabel = isPercent ? `Discount (${sale.discountValue}%):` : 'Discount:';
+    doc.text(discountLabel, summaryBoxX + 6, currentY + 12.5);
+    doc.text(`-Rs. ${discountAmount.toFixed(2)}`, summaryBoxX + summaryBoxWidth - 6, currentY + 12.5, { align: 'right' });
+
+    // Divider Line inside summary box
+    doc.setDrawColor(...borderGreen);
+    doc.setLineWidth(0.3);
+    doc.line(summaryBoxX + 4, currentY + 16, summaryBoxX + summaryBoxWidth - 4, currentY + 16);
+
+    // Grand Total Row
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9.5);
     doc.setTextColor(...darkGreenText);
-    doc.text('GRAND TOTAL:', summaryBoxX + 6, currentY + 8);
+    doc.text('GRAND TOTAL:', summaryBoxX + 6, currentY + 22.5);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(13);
+    doc.setFontSize(12);
     doc.setTextColor(...primaryGreen);
-    doc.text(`Rs. ${grandTotal}`, summaryBoxX + summaryBoxWidth - 6, currentY + 16, { align: 'right' });
+    doc.text(`Rs. ${grandTotal.toFixed(2)}`, summaryBoxX + summaryBoxWidth - 6, currentY + 22.5, { align: 'right' });
 
-    currentY += 32;
+    currentY += boxHeight + 10;
 
     // Footer note
     doc.setFont('helvetica', 'italic');

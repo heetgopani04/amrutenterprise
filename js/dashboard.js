@@ -414,10 +414,38 @@ const Dashboard = {
               </div>
             </div>
 
+            <!-- Discount Section -->
+            <div class="form-group" style="margin-top: 14px; margin-bottom: 14px;">
+              <label class="form-label" style="font-weight: 600;">Discount (Optional)</label>
+              <div class="form-row" style="display: flex; gap: 10px;">
+                <div class="flex-1" style="flex: 1;">
+                  <label class="form-label text-xs text-muted" for="dash-bill-discount-type" style="margin-bottom: 4px;">Discount Type</label>
+                  <select id="dash-bill-discount-type" class="form-control" style="cursor: pointer;">
+                    <option value="amount" selected>Amount (Rs.)</option>
+                    <option value="percentage">Percentage (%)</option>
+                  </select>
+                </div>
+                <div class="flex-1" style="flex: 1;">
+                  <label class="form-label text-xs text-muted" for="dash-bill-discount-value" style="margin-bottom: 4px;">Discount Value</label>
+                  <input type="number" id="dash-bill-discount-value" class="form-control" placeholder="0" min="0" step="any" value="0" />
+                </div>
+              </div>
+            </div>
+
             <!-- Grand Total Display Bar -->
-            <div class="sale-summary-bar" style="background: #f0fdf4; border-color: #a7f3d0;">
-              <span class="font-bold" style="color: #065f46;">Grand Total:</span>
-              <span id="dash-bill-grand-total" class="font-bold" style="font-size: 1.35rem; color: #059669;">₹ 0.00</span>
+            <div class="sale-summary-bar" style="background: #f0fdf4; border-color: #a7f3d0; display: flex; flex-direction: column; gap: 6px; padding: 12px 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 0.92rem; color: #374151;">
+                <span>Subtotal:</span>
+                <span id="dash-bill-subtotal" class="font-semibold" style="color: #1f2937;">₹ 0.00</span>
+              </div>
+              <div id="dash-bill-discount-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 0.92rem; color: #dc2626;">
+                <span>Discount:</span>
+                <span id="dash-bill-discount-amount" class="font-semibold">-₹ 0.00</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-top: 1px dashed #a7f3d0; padding-top: 8px; margin-top: 2px;">
+                <span class="font-bold" style="color: #065f46; font-size: 1.05rem;">Grand Total:</span>
+                <span id="dash-bill-grand-total" class="font-bold" style="font-size: 1.35rem; color: #059669;">₹ 0.00</span>
+              </div>
             </div>
 
             <!-- Payment Status Selection -->
@@ -450,9 +478,19 @@ const Dashboard = {
     const billForm = document.getElementById('dash-bill-form');
     const custSearchInput = document.getElementById('dash-cust-search-input');
     const inlineAddCustBtn = document.getElementById('dash-btn-inline-add-cust');
+    const discountTypeSelect = document.getElementById('dash-bill-discount-type');
+    const discountValueInput = document.getElementById('dash-bill-discount-value');
 
     if (closeBtn) closeBtn.addEventListener('click', () => this.closeBillModal());
     if (cancelBtn) cancelBtn.addEventListener('click', () => this.closeBillModal());
+
+    if (discountTypeSelect) {
+      discountTypeSelect.addEventListener('change', () => this.calculateBillTotal());
+    }
+
+    if (discountValueInput) {
+      discountValueInput.addEventListener('input', () => this.calculateBillTotal());
+    }
 
     if (pillExisting) {
       pillExisting.addEventListener('click', () => {
@@ -741,6 +779,59 @@ const Dashboard = {
     }
   },
 
+  calculateBillTotal() {
+    const { totalAmount: subtotal } = this.getCartSummary();
+    const typeSelect = document.getElementById('dash-bill-discount-type');
+    const valInput = document.getElementById('dash-bill-discount-value');
+    const subtotalEl = document.getElementById('dash-bill-subtotal');
+    const discountEl = document.getElementById('dash-bill-discount-amount');
+    const grandTotalEl = document.getElementById('dash-bill-grand-total');
+
+    const discountType = typeSelect ? typeSelect.value : 'amount';
+    let rawVal = valInput ? parseFloat(valInput.value) : 0;
+    if (isNaN(rawVal) || rawVal < 0) rawVal = 0;
+
+    let discountAmount = 0;
+    if (discountType === 'percentage') {
+      discountAmount = (subtotal * rawVal) / 100;
+    } else {
+      discountAmount = rawVal;
+    }
+
+    // Don't allow discount to make total negative - cap at subtotal value
+    if (discountAmount > subtotal) {
+      discountAmount = subtotal;
+    }
+    if (discountAmount < 0) {
+      discountAmount = 0;
+    }
+
+    const grandTotal = Math.max(0, subtotal - discountAmount);
+
+    if (subtotalEl) {
+      subtotalEl.textContent = `₹ ${subtotal.toFixed(2)}`;
+    }
+    if (discountEl) {
+      if (discountAmount > 0) {
+        const typeSuffix = discountType === 'percentage' ? ` (${rawVal}%)` : '';
+        discountEl.textContent = `-₹ ${discountAmount.toFixed(2)}${typeSuffix}`;
+      } else {
+        discountEl.textContent = `-₹ 0.00`;
+      }
+    }
+    if (grandTotalEl) {
+      grandTotalEl.textContent = `₹ ${grandTotal.toFixed(2)}`;
+    }
+
+    return {
+      subtotal,
+      discountType,
+      discountValue: rawVal,
+      discountAmount,
+      grandTotal
+    };
+  },
+
   openNewBillModal() {
     const modal = document.getElementById('dash-bill-modal');
     if (!modal) return;
@@ -765,14 +856,18 @@ const Dashboard = {
     const phoneInput = document.getElementById('dash-new-cust-phone');
     const addrInput = document.getElementById('dash-new-cust-address');
     const statusSelect = document.getElementById('dash-bill-payment-status');
+    const discountTypeSelect = document.getElementById('dash-bill-discount-type');
+    const discountValueInput = document.getElementById('dash-bill-discount-value');
+
     if (nameInput) nameInput.value = '';
     if (phoneInput) phoneInput.value = '';
     if (addrInput) addrInput.value = '';
     if (statusSelect) statusSelect.value = 'Pending';
+    if (discountTypeSelect) discountTypeSelect.value = 'amount';
+    if (discountValueInput) discountValueInput.value = '0';
 
     // Populate cart items review table
     const itemsTbody = document.getElementById('dash-bill-items-body');
-    const grandTotalEl = document.getElementById('dash-bill-grand-total');
 
     if (itemsTbody) {
       itemsTbody.innerHTML = '';
@@ -799,9 +894,7 @@ const Dashboard = {
       });
     }
 
-    if (grandTotalEl) {
-      grandTotalEl.textContent = `₹ ${totalAmount.toFixed(2)}`;
-    }
+    this.calculateBillTotal();
 
     modal.classList.add('active');
   },
@@ -831,11 +924,18 @@ const Dashboard = {
   handleConfirmSale(e) {
     e.preventDefault();
 
-    const { totalItems, totalAmount, items } = this.getCartSummary();
+    const { totalItems, items } = this.getCartSummary();
     if (totalItems === 0 || items.length === 0) {
       alert('Cart is empty.');
       return;
     }
+
+    const calc = this.calculateBillTotal();
+    const subtotal = calc.subtotal;
+    const discountType = calc.discountType;
+    const discountValue = calc.discountValue;
+    const discountAmount = calc.discountAmount;
+    const finalTotal = calc.grandTotal;
 
     let customer = null;
     const customers = Storage.getCustomers();
@@ -906,7 +1006,11 @@ const Dashboard = {
       customerPhone: customer.phone,
       customerAddress: customer.address,
       items: items,
-      total: totalAmount,
+      subtotal: subtotal,
+      discountType: discountType,
+      discountValue: discountValue,
+      discountAmount: discountAmount,
+      total: finalTotal,
       status: paymentStatus,
       paymentStatus: paymentStatus,
       date: new Date().toISOString()

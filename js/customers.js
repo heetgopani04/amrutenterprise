@@ -252,6 +252,17 @@ const Customers = {
             ? `<button type="button" class="btn btn-sm btn-outline" disabled style="opacity: 0.5; cursor: not-allowed;" title="All items returned">↩️ Returned</button>`
             : `<button type="button" class="btn btn-sm btn-outline btn-profile-return-sale" data-sale-id="${sale.id}" title="Return item(s)">↩️ Return</button>`;
 
+          let discountInfoHtml = '';
+          const discountVal = parseFloat(sale.discountValue) || 0;
+          const discountAmt = parseFloat(sale.discountAmount) || 0;
+          if (discountVal > 0 || discountAmt > 0) {
+            if (sale.discountType === 'percentage') {
+              discountInfoHtml = `<div class="text-xs font-normal" style="color: #dc2626;">${discountVal}% off</div>`;
+            } else {
+              discountInfoHtml = `<div class="text-xs font-normal" style="color: #dc2626;">Discount: Rs. ${(discountAmt || discountVal).toFixed(2)}</div>`;
+            }
+          }
+
           const row = document.createElement('tr');
           row.innerHTML = `
             <td class="font-medium">${this.escapeHtml(sale.invoiceNo || 'INV-' + sale.id)}</td>
@@ -259,6 +270,7 @@ const Customers = {
             <td class="text-sm">${itemsSummary || 'Items'}</td>
             <td class="font-semibold text-main">
               ₹ ${parseFloat(sale.total).toFixed(2)}
+              ${discountInfoHtml}
               ${sale.returnedAmount && parseFloat(sale.returnedAmount) > 0 ? `<div class="text-xs text-muted font-normal">(Ret: ₹${parseFloat(sale.returnedAmount).toFixed(2)})</div>` : ''}
             </td>
             <td>
