@@ -348,13 +348,13 @@ const Dashboard = {
     modal.className = 'modal-backdrop';
     modal.id = 'dash-bill-modal';
     modal.innerHTML = `
-      <div class="modal-dialog modal-dialog-lg">
-        <div class="modal-header">
+      <div class="modal-dialog modal-dialog-lg" style="max-height: 85vh; display: flex; flex-direction: column; overflow: hidden;">
+        <div class="modal-header" style="flex-shrink: 0; position: sticky; top: 0; z-index: 10; background: var(--surface);">
           <h3 class="modal-title">🧾 New Bill & Invoice</h3>
           <button type="button" class="modal-close" id="dash-modal-bill-close">&times;</button>
         </div>
-        <form id="dash-bill-form">
-          <div class="modal-body">
+        <form id="dash-bill-form" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; margin: 0;">
+          <div class="modal-body" style="overflow-y: auto; flex: 1; min-height: 0; padding: 20px;">
             
             <!-- Customer Mode Selection -->
             <div class="form-group">
@@ -397,7 +397,7 @@ const Dashboard = {
             <!-- Bill Line Items Summary Table -->
             <div class="form-group">
               <label class="form-label">Cart Line Items</label>
-              <div class="table-responsive" style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+              <div class="table-responsive" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm);">
                 <table class="data-table">
                   <thead>
                     <tr>
@@ -458,7 +458,7 @@ const Dashboard = {
             </div>
 
           </div>
-          <div class="modal-footer">
+          <div class="modal-footer" style="flex-shrink: 0; position: sticky; bottom: 0; z-index: 10;">
             <button type="button" class="btn btn-outline" id="dash-btn-cancel-bill">Cancel</button>
             <button type="submit" class="btn btn-primary" id="dash-btn-confirm-bill" style="background-color: #059669; border-color: #059669;">
               📄 Confirm & Generate Invoice
