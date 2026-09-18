@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock & Product Management - Amrut Enterprise</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- jsPDF & AutoTable CDN for PDF Invoice Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+  <!-- ==========================================
+       0. LOGIN / AUTH OVERLAY SCREEN
+       ========================================== -->
+  <div class="auth-overlay" id="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo-badge">📦</div>
+        <h2>Stock & Billing System</h2>
+        <p>Enter your phone number to sign in or access your store</p>
+      </div>
+
+      <div id="auth-error-msg" class="auth-error-toast" style="display: none;"></div>
+
+      <form id="auth-login-form" class="auth-form">
+        <div class="form-group">
+          <label class="form-label" for="auth-phone-input">Phone Number *</label>
+          <div class="input-with-icon">
+            <span class="input-icon">📱</span>
+            <input
+              type="tel"
+              id="auth-phone-input"
+              class="form-control"
+              placeholder="e.g. 9876543210"
+              required
+              autocomplete="tel"
+            />
+          </div>
+          <span class="text-xs text-muted" style="margin-top: 4px; display: block;">
+            Your phone number is your unique Store ID.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="auth-name-input">Store / Owner Name (Optional)</label>
+          <div class="input-with-icon">
+            <span class="input-icon">👤</span>
+            <input
+              type="text"
+              id="auth-name-input"
+              class="form-control"
+              placeholder="e.g. Heet Patel (Amrut Enterprise)"
+              autocomplete="name"
+            />
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary auth-submit-btn" id="btn-auth-submit">
+          <span>🚀 Sign In / Open Store</span>
+        </button>
+      </form>
+
+      <div class="auth-footer-badge">
+        <span>🔒 Cloud Database: Neon Postgres</span>
+        <span class="badge badge-success" style="font-size: 0.7rem; padding: 2px 6px;">Multi-User Connected</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MAIN APP SHELL
+       ========================================== -->
+  <div class="app-layout" id="app-layout">
+    
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">📦</div>
+        <div class="brand-details">
+          <h2 id="brand-store-name">Amrut Enterprise</h2>
+          <p>Stock & Product App</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-link active" data-tab="dashboard">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-link" data-tab="products">
+          <span class="nav-icon">🏷️</span>
+          <span>Products</span>
+        </button>
+        <button class="nav-link" data-tab="customers">
+          <span class="nav-icon">👥</span>
+          <span>Customers</span>
+        </button>
+        <button class="nav-link" data-tab="sales">
+          <span class="nav-icon">🛒</span>
+          <span>Sales</span>
+        </button>
+        <button class="nav-link" data-tab="settings">
+          <span class="nav-icon">⚙️</span>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar User Profile Footer -->
+      <div class="sidebar-user-footer">
+        <div class="user-meta">
+          <div class="user-avatar-circle">👤</div>
+          <div class="user-info-text">
+            <span class="user-display-name" id="sidebar-user-name">User</span>
+            <span class="user-display-phone" id="sidebar-user-phone">-</span>
+          </div>
+        </div>
+        <button type="button" class="btn-logout-sidebar" id="btn-sidebar-logout" title="Sign Out">
+          🚪 Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+      
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle Navigation">
+            ☰
+          </button>
+          <span class="top-bar-title">Inventory & Sales System</span>
+        </div>
+        <div class="top-bar-actions">
+          <span class="user-top-badge" id="topbar-user-badge">
+            <span class="user-dot"></span>
+            <span id="topbar-user-phone">Online</span>
+          </span>
+          <button class="btn btn-sm btn-outline btn-logout-top" id="btn-top-logout">
+            🚪 Logout
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Body Container -->
+      <div class="content-body">
+
+        <!-- ==========================================
+             1. DASHBOARD VIEW
+             ========================================== -->
+        <section class="view-section active" id="view-dashboard">
+          <div class="view-header">
+            <div>
+              <h1>Dashboard Overview</h1>
+              <p>Key metrics and real-time inventory performance summary.</p>
+            </div>
+          </div>
+
+          <!-- Summary Metric Cards -->
+          <div class="metrics-grid">
+            <div class="metric-card metric-primary">
+              <div class="metric-icon-box">🏷️</div>
+              <div class="metric-data">
+                <h3>Total Products</h3>
+                <div class="metric-value" id="dash-total-products">0</div>
+              </div>
+            </div>
+
+            <div class="metric-card metric-secondary">
+              <div class="metric-icon-box">👥</div>
+              <div class="metric-data">
+                <h3>Total Customers</h3>
+                <div class="metric-value" id="dash-total-customers">0</div>
+              </div>
+            </div>
+
+            <div class="metric-card metric-success">
+              <div class="metric-icon-box">💰</div>
+              <div class="metric-data">
+                <h3>Total Sales Revenue</h3>
+                <div class="metric-value" id="dash-total-revenue">₹ 0.00</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             2. PRODUCTS VIEW
+             ========================================== -->
+        <section class="view-section" id="view-products">
+          <div class="view-header">
+            <div>
+              <h1>Product Management</h1>
+              <p>Manage product catalog, inventory quantities, pricing, and stock alerts.</p>
+            </div>
+          </div>
+
+          <!-- Action & Filter Bar -->
+          <div class="action-bar">
+            <div class="filter-group">
+              <input type="text" id="product-search" class="form-control search-input" placeholder="🔍 Search product name or category..." />
+              <select id="product-category-filter" class="form-control" style="width: auto; min-width: 170px;">
+                <option value="">All Categories</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="btn-add-product-modal">
+              + Add Product
+            </button>
+          </div>
+
+          <!-- Products Table Card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Products Inventory (<span id="products-count">0</span> items)</span>
+              <span class="text-sm text-muted">Total Stock Value: <strong id="products-total-value" class="text-main">₹ 0.00</strong></span>
+            </div>
+            <div class="card-body" style="padding: 0;">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Product Name</th>
+                      <th>Category</th>
+                      <th>Unit Price</th>
+                      <th>Stock Qty</th>
+                      <th>Stock Value</th>
+                      <th class="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="products-table-body">
+                    <!-- Populated by products.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             3. CUSTOMERS VIEW
+             ========================================== -->
+        <section class="view-section" id="view-customers">
+          <div class="view-header">
+            <div>
+              <h1>Customer Management</h1>
+              <p>Track customer records, contact info, and complete purchase histories.</p>
+            </div>
+          </div>
+
+          <!-- Action Bar -->
+          <div class="action-bar">
+            <div class="filter-group">
+              <input type="text" id="customer-search" class="form-control search-input" placeholder="🔍 Search customer by name, phone or address..." />
+            </div>
+            <button class="btn btn-primary" id="btn-add-customer-modal">
+              + Add Customer
+            </button>
+          </div>
+
+          <!-- Customers Table Card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Customer Directory (<span id="customers-count">0</span> registered)</span>
+            </div>
+            <div class="card-body" style="padding: 0;">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Customer Name</th>
+                      <th>Phone Number</th>
+                      <th>Address</th>
+                      <th>Total Purchases</th>
+                      <th class="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="customers-table-body">
+                    <!-- Populated by customers.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             4. SALES VIEW
+             ========================================== -->
+        <section class="view-section" id="view-sales">
+          <div class="view-header">
+            <div>
+              <h1>Sales & Orders</h1>
+              <p>Create itemized sales orders, auto-reduce stock, and generate PDF invoices.</p>
+            </div>
+          </div>
+
+          <!-- Action Bar -->
+          <div class="action-bar">
+            <div class="filter-group">
+              <input type="text" id="sales-search" class="form-control search-input" placeholder="🔍 Search by Invoice # or Customer name..." />
+            </div>
+            <button class="btn btn-primary" id="btn-new-sale-modal">
+              + New Sale
+            </button>
+          </div>
+
+          <!-- Sales Table Card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Sales Orders (<span id="sales-count">0</span> completed)</span>
+              <span class="text-sm text-muted">Total Revenue: <strong id="sales-total-revenue" class="text-main">₹ 0.00</strong></span>
+            </div>
+            <div class="card-body" style="padding: 0;">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Invoice #</th>
+                      <th>Customer</th>
+                      <th>Date</th>
+                      <th>Items Sold</th>
+                      <th>Total Amount</th>
+                      <th>Status</th>
+                      <th class="text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sales-table-body">
+                    <!-- Populated by sales.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             5. SETTINGS VIEW
+             ========================================== -->
+        <section class="view-section" id="view-settings">
+          <div class="view-header">
+            <div>
+              <h1>Settings & Store Profile</h1>
+              <p>Configure store details for PDF invoice headers and manage cloud account.</p>
+            </div>
+          </div>
+
+          <div id="settings-success-msg" class="alert-toast">
+            ✅ Store settings saved successfully to Postgres database!
+          </div>
+
+          <!-- Account & Session Card -->
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <span class="card-title">👤 Logged-in Account</span>
+            </div>
+            <div class="card-body">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                <div>
+                  <div style="font-size: 1.05rem; font-weight: 700;" id="settings-account-name">Store Owner</div>
+                  <div class="text-sm text-muted" id="settings-account-phone">Phone: -</div>
+                  <span class="badge badge-success" style="margin-top: 6px;">Connected to Neon Postgres</span>
+                </div>
+                <button type="button" class="btn btn-danger" id="btn-settings-logout">
+                  🚪 Logout from this device
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Store & Business Details</span>
+            </div>
+            <div class="card-body">
+              <form id="settings-form">
+                <div class="form-row">
+                  <div class="form-group flex-1">
+                    <label class="form-label" for="setting-store-name">Store / Business Name</label>
+                    <input type="text" id="setting-store-name" class="form-control" placeholder="e.g. Amrut Enterprise" required />
+                  </div>
+                  <div class="form-group flex-1">
+                    <label class="form-label" for="setting-owner-name">Owner Name</label>
+                    <input type="text" id="setting-owner-name" class="form-control" placeholder="e.g. Heet Patel" />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group flex-1">
+                    <label class="form-label" for="setting-store-phone">Phone / Contact Number</label>
+                    <input type="text" id="setting-store-phone" class="form-control" placeholder="e.g. +91 9876543210" />
+                  </div>
+                  <div class="form-group flex-1">
+                    <label class="form-label" for="setting-store-address">Store Address</label>
+                    <input type="text" id="setting-store-address" class="form-control" placeholder="e.g. 101 Market Yard, City" />
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                  💾 Save Store Details
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Danger Zone: Reset All Data -->
+          <div class="card danger-zone">
+            <div class="card-header" style="background: transparent;">
+              <span class="card-title" style="color: var(--danger);">⚠️ Danger Zone - Reset Account Store Data</span>
+            </div>
+            <div class="card-body">
+              <p class="text-sm text-muted" style="margin-bottom: 16px;">
+                Resetting will permanently wipe all products, customer records, sales transactions, and store settings for your phone number from the database.
+              </p>
+              <button type="button" class="btn btn-danger" id="btn-reset-all-data">
+                🗑️ Reset All My Store Data
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ==========================================
+       MODALS
+       ========================================== -->
+
+  <!-- Product Modal (Add / Edit) -->
+  <div class="modal-backdrop" id="product-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="product-modal-title">Add New Product</h3>
+        <button type="button" class="modal-close" id="modal-product-close">&times;</button>
+      </div>
+      <form id="product-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="product-name">Product Name *</label>
+            <input type="text" id="product-name" class="form-control" placeholder="e.g. Stainless Steel Bolt M8" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="product-category">Category</label>
+            <input type="text" id="product-category" class="form-control" placeholder="e.g. Fasteners, Hardware, Electrical" />
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label" for="product-price">Unit Price (₹) *</label>
+              <input type="number" id="product-price" class="form-control" step="0.01" min="0" placeholder="0.00" required />
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label" for="product-stock">Stock Quantity *</label>
+              <input type="number" id="product-stock" class="form-control" min="0" placeholder="0" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="product-image">Product Photo</label>
+            <input type="file" id="product-image" class="form-control" accept="image/*" />
+            <div id="product-image-error" class="text-xs" style="color: var(--danger); margin-top: 5px; font-weight: 600; display: none;">Image size must be under 20KB</div>
+            <div id="product-image-preview-wrapper" style="margin-top: 10px; display: flex; align-items: center; gap: 12px;">
+              <div id="product-image-preview-box" style="width: 54px; height: 54px; border-radius: var(--radius-sm); border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; background: var(--surface-alt); overflow: hidden; flex-shrink: 0;">
+                <span id="product-image-placeholder-icon" style="font-size: 1.5rem;">📦</span>
+                <img id="product-image-preview" src="" alt="Product Preview" style="width: 100%; height: 100%; object-fit: cover; display: none;" />
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <span class="text-xs text-muted">Max file size: 20KB (Optional)</span>
+                <button type="button" class="btn btn-sm btn-outline" id="btn-remove-product-image" style="display: none; color: var(--danger); border-color: var(--danger-border); width: fit-content;">
+                  🗑️ Remove Photo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btn-cancel-product">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-product">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Customer Modal (Add / Edit) -->
+  <div class="modal-backdrop" id="customer-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="customer-modal-title">Add New Customer</h3>
+        <button type="button" class="modal-close" id="modal-customer-close">&times;</button>
+      </div>
+      <form id="customer-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="customer-name">Customer Name *</label>
+            <input type="text" id="customer-name" class="form-control" placeholder="e.g. Apex Industries" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="customer-phone">Phone Number</label>
+            <input type="text" id="customer-phone" class="form-control" placeholder="e.g. +91 9988776655" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="customer-address">Address / City</label>
+            <input type="text" id="customer-address" class="form-control" placeholder="e.g. Industrial Area, Phase 2" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btn-cancel-customer">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-customer">Save Customer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Customer Profile & Purchase History Modal -->
+  <div class="modal-backdrop" id="customer-profile-modal">
+    <div class="modal-dialog modal-dialog-lg">
+      <div class="modal-header">
+        <h3 class="modal-title">Customer Profile & Purchase History</h3>
+        <button type="button" class="modal-close" id="modal-profile-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="profile-meta-grid">
+          <div class="profile-meta-item">
+            <label>Customer Name</label>
+            <span id="profile-name">-</span>
+          </div>
+          <div class="profile-meta-item">
+            <label>Phone</label>
+            <span id="profile-phone">-</span>
+          </div>
+          <div class="profile-meta-item">
+            <label>Address</label>
+            <span id="profile-address">-</span>
+          </div>
+          <div class="profile-meta-item">
+            <label>Total Orders</label>
+            <span id="profile-total-orders">0</span>
+          </div>
+          <div class="profile-meta-item">
+            <label>Total Spent</label>
+            <span id="profile-total-spent" style="color: var(--primary);">₹ 0.00</span>
+          </div>
+        </div>
+
+        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 12px;">Purchase History</h4>
+        <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Invoice #</th>
+                <th>Date</th>
+                <th>Purchased Items</th>
+                <th>Total (₹)</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="profile-history-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" id="btn-close-profile">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Sale Modal -->
+  <div class="modal-backdrop" id="sale-modal">
+    <div class="modal-dialog modal-dialog-lg">
+      <div class="modal-header">
+        <h3 class="modal-title">Create New Sale</h3>
+        <button type="button" class="modal-close" id="modal-sale-close">&times;</button>
+      </div>
+      <form id="new-sale-form">
+        <div class="modal-body">
+          <!-- Select Customer -->
+          <div class="form-group">
+            <label class="form-label" for="sale-customer-select">Select Customer *</label>
+            <select id="sale-customer-select" class="form-control" required>
+              <option value="">-- Select Customer --</option>
+            </select>
+          </div>
+
+          <!-- Product Line Items Builder -->
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label class="form-label" style="margin-bottom: 0;">Product Line Items *</label>
+              <button type="button" class="btn btn-sm btn-outline" id="btn-add-sale-item">
+                + Add Another Product
+              </button>
+            </div>
+            <div class="sale-items-box">
+              <div id="sale-items-container">
+                <!-- Populated dynamically by sales.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Grand Total Display Bar -->
+          <div class="sale-summary-bar">
+            <span class="font-bold">Total Amount:</span>
+            <span id="sale-modal-grand-total" class="font-bold" style="font-size: 1.3rem; color: var(--primary);">₹ 0.00</span>
+          </div>
+
+          <!-- Payment Status Selection -->
+          <div class="form-group" style="margin-top: 14px;">
+            <label class="form-label" for="sale-payment-status" style="font-weight: 600;">Payment Status *</label>
+            <select id="sale-payment-status" class="form-control" style="font-weight: 600; cursor: pointer;">
+              <option value="Pending" selected>⏳ Pending</option>
+              <option value="Paid">✅ Paid</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btn-cancel-sale">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-complete-sale">
+            ✅ Complete Sale & Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       SCRIPTS (Loaded in exact dependency order)
+       ========================================== -->
+  <script src="js/storage.js"></script>
+  <script src="js/invoice.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/customers.js"></script>
+  <script src="js/sales.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

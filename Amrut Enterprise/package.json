@@ -1,0 +1,24 @@
+{
+  "name": "amrut-enterprise-stock-mgmt",
+  "version": "2.0.0",
+  "description": "Multi-user Stock & Sales Management App with Phone Login and Neon Postgres Database",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.4",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0"
+  },
+  "keywords": [
+    "inventory",
+    "stock-management",
+    "neon-postgres",
+    "vercel",
+    "serverless"
+  ],
+  "author": "Amrut Enterprise",
+  "license": "ISC"
+}
