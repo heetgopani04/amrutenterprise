@@ -27,11 +27,20 @@
       <div class="auth-header">
         <div class="auth-logo-badge">📦</div>
         <h2>Stock & Billing System</h2>
-        <p>Enter your phone number to sign in or access your store</p>
+        <p id="auth-header-subtitle">Sign in to manage your inventory and sales</p>
       </div>
 
-      <div id="auth-error-msg" class="auth-error-toast" style="display: none;"></div>
+      <!-- Auth Navigation Tabs -->
+      <div class="auth-tabs" id="auth-tabs">
+        <button type="button" class="auth-tab-btn active" id="tab-btn-login">Login</button>
+        <button type="button" class="auth-tab-btn" id="tab-btn-signup">Sign Up</button>
+      </div>
 
+      <!-- Feedback Messages -->
+      <div id="auth-error-msg" class="auth-error-toast" style="display: none;"></div>
+      <div id="auth-info-msg" class="auth-info-toast" style="display: none;"></div>
+
+      <!-- 1. LOGIN FORM -->
       <form id="auth-login-form" class="auth-form">
         <div class="form-group">
           <label class="form-label" for="auth-phone-input">Phone Number *</label>
@@ -46,18 +55,53 @@
               autocomplete="tel"
             />
           </div>
-          <span class="text-xs text-muted" style="margin-top: 4px; display: block;">
-            Your phone number is your unique Store ID.
-          </span>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="auth-name-input">Store / Owner Name (Optional)</label>
+          <div class="auth-label-row">
+            <label class="form-label" for="auth-password-input">Password *</label>
+            <a href="#" id="link-forgot-password" class="auth-forgot-link">Forgot password?</a>
+          </div>
+          <div class="input-with-icon input-with-action">
+            <span class="input-icon">🔒</span>
+            <input
+              type="password"
+              id="auth-password-input"
+              class="form-control"
+              placeholder="Enter your password"
+              required
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              class="btn-password-toggle"
+              id="toggle-login-password"
+              title="Show / Hide Password"
+              aria-label="Toggle password visibility"
+            >
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary auth-submit-btn" id="btn-auth-submit">
+          <span>🚀 Sign In</span>
+        </button>
+
+        <div class="auth-toggle-text">
+          Don't have an account? <a href="#" id="switch-to-signup" class="auth-link-highlight">Sign Up</a>
+        </div>
+      </form>
+
+      <!-- 2. SIGN UP FORM -->
+      <form id="auth-signup-form" class="auth-form" style="display: none;">
+        <div class="form-group">
+          <label class="form-label" for="signup-name-input">Store / Owner Name</label>
           <div class="input-with-icon">
             <span class="input-icon">👤</span>
             <input
               type="text"
-              id="auth-name-input"
+              id="signup-name-input"
               class="form-control"
               placeholder="e.g. Heet Patel (Amrut Enterprise)"
               autocomplete="name"
@@ -65,10 +109,91 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary auth-submit-btn" id="btn-auth-submit">
-          <span>🚀 Sign In / Open Store</span>
+        <div class="form-group">
+          <label class="form-label" for="signup-phone-input">Phone Number *</label>
+          <div class="input-with-icon">
+            <span class="input-icon">📱</span>
+            <input
+              type="tel"
+              id="signup-phone-input"
+              class="form-control"
+              placeholder="e.g. 9876543210"
+              required
+              autocomplete="tel"
+            />
+          </div>
+          <span class="text-xs text-muted" style="margin-top: 4px; display: block;">
+            Your phone number is your unique Store ID.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signup-password-input">Password * (min 6 characters)</label>
+          <div class="input-with-icon input-with-action">
+            <span class="input-icon">🔒</span>
+            <input
+              type="password"
+              id="signup-password-input"
+              class="form-control"
+              placeholder="Create password (min 6 characters)"
+              minlength="6"
+              required
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="btn-password-toggle"
+              id="toggle-signup-password"
+              title="Show / Hide Password"
+              aria-label="Toggle password visibility"
+            >
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signup-confirm-password-input">Confirm Password *</label>
+          <div class="input-with-icon input-with-action">
+            <span class="input-icon">🔒</span>
+            <input
+              type="password"
+              id="signup-confirm-password-input"
+              class="form-control"
+              placeholder="Re-enter password"
+              minlength="6"
+              required
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="btn-password-toggle"
+              id="toggle-signup-confirm-password"
+              title="Show / Hide Password"
+              aria-label="Toggle password visibility"
+            >
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary auth-submit-btn" id="btn-signup-submit">
+          <span>✨ Create Account & Sign In</span>
         </button>
+
+        <div class="auth-toggle-text">
+          Already have an account? <a href="#" id="switch-to-login" class="auth-link-highlight">Log In</a>
+        </div>
       </form>
+
+      <!-- Forgot Password Notice Box -->
+      <div id="auth-forgot-notice" class="auth-forgot-notice" style="display: none;">
+        <div class="auth-forgot-content">
+          <h4>🔑 Forgot Password?</h4>
+          <p>For security, please contact your store administrator or support to reset your account password.</p>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-close-forgot-notice">Dismiss</button>
+        </div>
+      </div>
 
       <div class="auth-footer-badge">
         <span>🔒 Cloud Database: Neon Postgres</span>

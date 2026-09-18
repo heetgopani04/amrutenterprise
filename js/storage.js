@@ -49,19 +49,19 @@ const Storage = {
     return !!(token && user && user.phone);
   },
 
-  async login(phone, name = '') {
+  async login(phone, password) {
     try {
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ phone, name })
+        body: JSON.stringify({ phone, password })
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to sign in. Please try again.');
+        throw new Error(data.error || 'Invalid phone or password.');
       }
 
       localStorage.setItem(AUTH_KEYS.TOKEN, data.token);
@@ -73,6 +73,34 @@ const Storage = {
       return { success: true, user: data.user };
     } catch (err) {
       console.error('Login error:', err);
+      throw err;
+    }
+  },
+
+  async signup(phone, name, password, confirmPassword) {
+    try {
+      const res = await fetch(`${API_BASE}/auth/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ phone, name, password, confirmPassword })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to create account. Please try again.');
+      }
+
+      localStorage.setItem(AUTH_KEYS.TOKEN, data.token);
+      localStorage.setItem(AUTH_KEYS.USER, JSON.stringify(data.user));
+
+      // Fetch all store data from Neon DB
+      await this.fetchAll();
+
+      return { success: true, user: data.user };
+    } catch (err) {
+      console.error('Signup error:', err);
       throw err;
     }
   },

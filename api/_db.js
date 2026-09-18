@@ -4,6 +4,7 @@
 
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'amrut-enterprise-secret-key-2026-neon-db';
 
@@ -40,9 +41,12 @@ async function initDB() {
       CREATE TABLE IF NOT EXISTS users (
         phone VARCHAR(50) PRIMARY KEY,
         name VARCHAR(255),
+        password TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         last_login TIMESTAMPTZ DEFAULT NOW()
       );
+
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS password TEXT;
 
       CREATE TABLE IF NOT EXISTS products (
         id VARCHAR(100) PRIMARY KEY,
@@ -102,6 +106,30 @@ async function initDB() {
   }
 }
 
+// Cryptographic Password Hashing & Verification using Node.js crypto
+function hashPassword(password) {
+  if (!password) return null;
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, storedPassword) {
+  if (!storedPassword || !password) return false;
+  const parts = storedPassword.split(':');
+  if (parts.length === 2) {
+    const [salt, key] = parts;
+    const keyBuffer = Buffer.from(key, 'hex');
+    const derivedKey = crypto.scryptSync(password, salt, 64);
+    if (keyBuffer.length !== derivedKey.length) {
+      return false;
+    }
+    return crypto.timingSafeEqual(keyBuffer, derivedKey);
+  }
+  // Plaintext fallback for legacy records
+  return password === storedPassword;
+}
+
 // Generate JWT token for user session
 function generateToken(user) {
   return jwt.sign(
@@ -143,12 +171,7 @@ async function authenticateUser(req) {
   const pool = getPool();
   const res = await pool.query('SELECT phone, name FROM users WHERE phone = $1', [phone.trim()]);
   if (res.rows.length === 0) {
-    // If not found in DB but phone is provided, create the user record
-    const insertRes = await pool.query(
-      'INSERT INTO users (phone, name) VALUES ($1, $2) RETURNING phone, name',
-      [phone.trim(), (decoded && decoded.name) || 'Store Owner']
-    );
-    return insertRes.rows[0];
+    return null;
   }
 
   return res.rows[0];
@@ -176,6 +199,8 @@ function sendJSON(res, statusCode, data) {
 module.exports = {
   getPool,
   initDB,
+  hashPassword,
+  verifyPassword,
   generateToken,
   authenticateUser,
   sendJSON

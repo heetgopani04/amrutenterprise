@@ -22,8 +22,12 @@ const App = {
     const authOverlay = document.getElementById('auth-overlay');
     const appLayout = document.getElementById('app-layout');
     const errorEl = document.getElementById('auth-error-msg');
+    const infoEl = document.getElementById('auth-info-msg');
+    const forgotNotice = document.getElementById('auth-forgot-notice');
 
     if (errorEl) errorEl.style.display = 'none';
+    if (infoEl) infoEl.style.display = 'none';
+    if (forgotNotice) forgotNotice.style.display = 'none';
     if (authOverlay) authOverlay.style.display = 'flex';
     if (appLayout) appLayout.style.display = 'none';
   },
@@ -74,54 +78,206 @@ const App = {
 
   // Bind Login / Logout events
   bindAuthEvents() {
-    const authForm = document.getElementById('auth-login-form');
+    const loginForm = document.getElementById('auth-login-form');
+    const signupForm = document.getElementById('auth-signup-form');
+    const tabLogin = document.getElementById('tab-btn-login');
+    const tabSignup = document.getElementById('tab-btn-signup');
+    const switchToSignup = document.getElementById('switch-to-signup');
+    const switchToLogin = document.getElementById('switch-to-login');
+    const linkForgotPassword = document.getElementById('link-forgot-password');
+    const forgotNotice = document.getElementById('auth-forgot-notice');
+    const closeForgotNotice = document.getElementById('btn-close-forgot-notice');
+    const subtitleEl = document.getElementById('auth-header-subtitle');
+
     const sidebarLogoutBtn = document.getElementById('btn-sidebar-logout');
     const topLogoutBtn = document.getElementById('btn-top-logout');
     const settingsLogoutBtn = document.getElementById('btn-settings-logout');
     const errorEl = document.getElementById('auth-error-msg');
-    const submitBtn = document.getElementById('btn-auth-submit');
+    const infoEl = document.getElementById('auth-info-msg');
 
-    if (authForm) {
-      authForm.addEventListener('submit', async (e) => {
+    const showMsg = (msg, isError = true) => {
+      if (isError) {
+        if (errorEl) {
+          errorEl.textContent = msg;
+          errorEl.style.display = 'block';
+        }
+        if (infoEl) infoEl.style.display = 'none';
+      } else {
+        if (infoEl) {
+          infoEl.textContent = msg;
+          infoEl.style.display = 'block';
+        }
+        if (errorEl) errorEl.style.display = 'none';
+      }
+    };
+
+    const clearMsg = () => {
+      if (errorEl) errorEl.style.display = 'none';
+      if (infoEl) infoEl.style.display = 'none';
+    };
+
+    // Mode switching function (Login vs Signup)
+    const setAuthMode = (mode) => {
+      clearMsg();
+      if (forgotNotice) forgotNotice.style.display = 'none';
+
+      if (mode === 'signup') {
+        if (loginForm) loginForm.style.display = 'none';
+        if (signupForm) signupForm.style.display = 'flex';
+        if (tabSignup) tabSignup.classList.add('active');
+        if (tabLogin) tabLogin.classList.remove('active');
+        if (subtitleEl) subtitleEl.textContent = 'Create an account to manage your store';
+      } else {
+        if (loginForm) loginForm.style.display = 'flex';
+        if (signupForm) signupForm.style.display = 'none';
+        if (tabLogin) tabLogin.classList.add('active');
+        if (tabSignup) tabSignup.classList.remove('active');
+        if (subtitleEl) subtitleEl.textContent = 'Sign in to manage your inventory and sales';
+      }
+    };
+
+    if (tabLogin) tabLogin.addEventListener('click', () => setAuthMode('login'));
+    if (tabSignup) tabSignup.addEventListener('click', () => setAuthMode('signup'));
+    if (switchToSignup) switchToSignup.addEventListener('click', (e) => { e.preventDefault(); setAuthMode('signup'); });
+    if (switchToLogin) switchToLogin.addEventListener('click', (e) => { e.preventDefault(); setAuthMode('login'); });
+
+    // Forgot Password notice toggle
+    if (linkForgotPassword) {
+      linkForgotPassword.addEventListener('click', (e) => {
         e.preventDefault();
+        if (forgotNotice) {
+          forgotNotice.style.display = forgotNotice.style.display === 'none' ? 'block' : 'none';
+        }
+      });
+    }
+
+    if (closeForgotNotice) {
+      closeForgotNotice.addEventListener('click', () => {
+        if (forgotNotice) forgotNotice.style.display = 'none';
+      });
+    }
+
+    // Password show/hide toggle helper
+    const setupPasswordToggle = (toggleBtnId, inputId) => {
+      const btn = document.getElementById(toggleBtnId);
+      const input = document.getElementById(inputId);
+      if (btn && input) {
+        btn.addEventListener('click', () => {
+          const isPassword = input.type === 'password';
+          input.type = isPassword ? 'text' : 'password';
+          btn.textContent = isPassword ? '🙈' : '👁️';
+          btn.title = isPassword ? 'Hide Password' : 'Show Password';
+        });
+      }
+    };
+
+    setupPasswordToggle('toggle-login-password', 'auth-password-input');
+    setupPasswordToggle('toggle-signup-password', 'signup-password-input');
+    setupPasswordToggle('toggle-signup-confirm-password', 'signup-confirm-password-input');
+
+    // 1. Handle Login Form Submit
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearMsg();
+
         const phoneInput = document.getElementById('auth-phone-input');
-        const nameInput = document.getElementById('auth-name-input');
+        const passwordInput = document.getElementById('auth-password-input');
+        const submitBtn = document.getElementById('btn-auth-submit');
 
         const phone = phoneInput ? phoneInput.value.trim() : '';
-        const name = nameInput ? nameInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value : '';
 
         if (!phone) {
-          if (errorEl) {
-            errorEl.textContent = 'Please enter your phone number.';
-            errorEl.style.display = 'block';
-          }
+          showMsg('Please enter your phone number.');
+          return;
+        }
+
+        if (!password) {
+          showMsg('Please enter your password.');
           return;
         }
 
         if (submitBtn) {
           submitBtn.disabled = true;
-          submitBtn.innerHTML = '<span>⏳ Connecting to Neon DB...</span>';
+          submitBtn.innerHTML = '<span>⏳ Signing In...</span>';
         }
 
         try {
-          await Storage.login(phone, name);
-          if (errorEl) errorEl.style.display = 'none';
+          await Storage.login(phone, password);
+          clearMsg();
           await this.launchApp();
         } catch (err) {
           console.error('Login error:', err);
-          if (errorEl) {
-            errorEl.textContent = err.message || 'Login failed. Please check your connection.';
-            errorEl.style.display = 'block';
-          }
+          showMsg(err.message || 'Invalid phone or password.');
         } finally {
           if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<span>🚀 Sign In / Open Store</span>';
+            submitBtn.innerHTML = '<span>🚀 Sign In</span>';
           }
         }
       });
     }
 
+    // 2. Handle Sign Up Form Submit
+    if (signupForm) {
+      signupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearMsg();
+
+        const nameInput = document.getElementById('signup-name-input');
+        const phoneInput = document.getElementById('signup-phone-input');
+        const passwordInput = document.getElementById('signup-password-input');
+        const confirmPasswordInput = document.getElementById('signup-confirm-password-input');
+        const submitBtn = document.getElementById('btn-signup-submit');
+
+        const name = nameInput ? nameInput.value.trim() : '';
+        const phone = phoneInput ? phoneInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value : '';
+        const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : '';
+
+        if (!phone) {
+          showMsg('Please enter your phone number.');
+          return;
+        }
+
+        if (!password) {
+          showMsg('Please enter a password.');
+          return;
+        }
+
+        if (password.length < 6) {
+          showMsg('Password must be at least 6 characters.');
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          showMsg('Password and Confirm Password must match.');
+          return;
+        }
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<span>⏳ Creating Account...</span>';
+        }
+
+        try {
+          await Storage.signup(phone, name, password, confirmPassword);
+          clearMsg();
+          await this.launchApp();
+        } catch (err) {
+          console.error('Signup error:', err);
+          showMsg(err.message || 'Failed to create account. Please try again.');
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>✨ Create Account & Sign In</span>';
+          }
+        }
+      });
+    }
+
+    // Handle Logout
     const handleLogout = () => {
       if (confirm('Are you sure you want to sign out?')) {
         Storage.logout();
