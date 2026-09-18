@@ -224,14 +224,10 @@ const InvoiceGenerator = {
     // Summary Box (Green Theme) showing Subtotal, Discount, and Grand Total
     const computedItemsSubtotal = (sale.items || []).reduce((acc, i) => acc + (parseFloat(i.total) || (parseFloat(i.price) * (i.qty || 1)) || 0), 0);
     const subtotal = sale.subtotal !== undefined ? parseFloat(sale.subtotal) : computedItemsSubtotal;
-    let discountAmount = sale.discountAmount !== undefined ? parseFloat(sale.discountAmount) : 0;
-    if (discountAmount === 0 && sale.discountValue && parseFloat(sale.discountValue) > 0) {
-      if (sale.discountType === 'percentage') {
-        discountAmount = (subtotal * parseFloat(sale.discountValue)) / 100;
-      } else {
-        discountAmount = parseFloat(sale.discountValue);
-      }
-    }
+    let discountAmount = sale.discountAmount !== undefined ? parseFloat(sale.discountAmount) : (parseFloat(sale.discountValue) || 0);
+    if (isNaN(discountAmount) || discountAmount < 0) discountAmount = 0;
+    if (discountAmount > subtotal) discountAmount = subtotal;
+
     const grandTotal = parseFloat(sale.total !== undefined ? sale.total : Math.max(0, subtotal - discountAmount));
 
     const summaryBoxWidth = 78;
@@ -253,9 +249,7 @@ const InvoiceGenerator = {
     // Discount Row
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(220, 38, 38);
-    const isPercent = sale.discountType === 'percentage' && parseFloat(sale.discountValue || 0) > 0;
-    const discountLabel = isPercent ? `Discount (${sale.discountValue}%):` : 'Discount:';
-    doc.text(discountLabel, summaryBoxX + 6, currentY + 12.5);
+    doc.text('Discount:', summaryBoxX + 6, currentY + 12.5);
     doc.text(`-Rs. ${discountAmount.toFixed(2)}`, summaryBoxX + summaryBoxWidth - 6, currentY + 12.5, { align: 'right' });
 
     // Divider Line inside summary box

@@ -253,14 +253,9 @@ const Customers = {
             : `<button type="button" class="btn btn-sm btn-outline btn-profile-return-sale" data-sale-id="${sale.id}" title="Return item(s)">↩️ Return</button>`;
 
           let discountInfoHtml = '';
-          const discountVal = parseFloat(sale.discountValue) || 0;
-          const discountAmt = parseFloat(sale.discountAmount) || 0;
-          if (discountVal > 0 || discountAmt > 0) {
-            if (sale.discountType === 'percentage') {
-              discountInfoHtml = `<div class="text-xs font-normal" style="color: #dc2626;">${discountVal}% off</div>`;
-            } else {
-              discountInfoHtml = `<div class="text-xs font-normal" style="color: #dc2626;">Discount: Rs. ${(discountAmt || discountVal).toFixed(2)}</div>`;
-            }
+          const discountAmt = parseFloat(sale.discountAmount !== undefined ? sale.discountAmount : sale.discountValue) || 0;
+          if (discountAmt > 0) {
+            discountInfoHtml = `<div class="text-xs font-normal" style="color: #dc2626;">Discount: Rs. ${discountAmt.toFixed(2)}</div>`;
           }
 
           const row = document.createElement('tr');
