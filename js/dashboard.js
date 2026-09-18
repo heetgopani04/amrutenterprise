@@ -263,6 +263,148 @@ const Dashboard = {
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       }
 
+      /* Fullscreen New Bill Page / Overlay */
+      #dash-bill-modal.modal-backdrop {
+        position: fixed;
+        inset: 0;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #ffffff;
+        padding: 0;
+        margin: 0;
+        z-index: 1000;
+        display: none;
+        align-items: stretch;
+        justify-content: stretch;
+        overflow: hidden;
+      }
+      #dash-bill-modal.modal-backdrop.active {
+        display: flex;
+        flex-direction: column;
+        animation: fadeIn 0.15s ease-out;
+      }
+      #dash-bill-modal .modal-dialog {
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .dash-bill-fullscreen-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 24px;
+        background: #ffffff;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 25;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        flex-shrink: 0;
+      }
+      .dash-bill-back-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--surface-alt);
+        color: var(--text-main);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        padding: 6px;
+        flex-shrink: 0;
+      }
+      .dash-bill-back-btn:hover {
+        background: #e2e8f0;
+        color: #059669;
+        border-color: #cbd5e1;
+        transform: scale(1.04);
+      }
+      .dash-bill-back-btn:active {
+        transform: scale(0.96);
+      }
+      .dash-bill-back-icon {
+        width: 30px;
+        height: 30px;
+        display: block;
+      }
+      .dash-bill-header-text {
+        display: flex;
+        flex-direction: column;
+      }
+      .dash-bill-header-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0;
+        line-height: 1.2;
+      }
+      .dash-bill-header-sub {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+      }
+      .dash-bill-scroll-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px 20px 40px;
+        -webkit-overflow-scrolling: touch;
+        background: #f8fafc;
+      }
+      .dash-bill-container {
+        max-width: 860px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .dash-bill-section-card {
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        box-shadow: var(--shadow-sm);
+      }
+      .dash-bill-section-title {
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .dash-bill-fullscreen-footer {
+        padding: 14px 24px;
+        background: #ffffff;
+        border-top: 1px solid var(--border);
+        position: sticky;
+        bottom: 0;
+        z-index: 25;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.04);
+        flex-shrink: 0;
+      }
+      .dash-bill-footer-inner {
+        max-width: 860px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+      }
+
       @media (max-width: 768px) {
         .dash-floating-cart {
           bottom: 16px;
@@ -271,6 +413,38 @@ const Dashboard = {
           border-radius: var(--radius-md);
           padding: 12px 16px;
           justify-content: space-between;
+        }
+        .dash-bill-fullscreen-header {
+          padding: 12px 16px;
+          gap: 12px;
+        }
+        .dash-bill-back-btn {
+          width: 40px;
+          height: 40px;
+        }
+        .dash-bill-back-icon {
+          width: 26px;
+          height: 26px;
+        }
+        .dash-bill-header-title {
+          font-size: 1.1rem;
+        }
+        .dash-bill-scroll-body {
+          padding: 14px 12px 30px;
+        }
+        .dash-bill-section-card {
+          padding: 14px;
+        }
+        .dash-bill-fullscreen-footer {
+          padding: 12px 16px;
+        }
+        .dash-bill-footer-inner {
+          flex-direction: column-reverse;
+          gap: 8px;
+        }
+        .dash-bill-footer-inner .btn {
+          width: 100%;
+          justify-content: center;
         }
       }
     `;
@@ -348,121 +522,151 @@ const Dashboard = {
     modal.className = 'modal-backdrop';
     modal.id = 'dash-bill-modal';
     modal.innerHTML = `
-      <div class="modal-dialog modal-dialog-lg" style="max-height: 85vh; display: flex; flex-direction: column; overflow: hidden;">
-        <div class="modal-header" style="flex-shrink: 0; position: sticky; top: 0; z-index: 10; background: var(--surface);">
-          <h3 class="modal-title">🧾 New Bill & Invoice</h3>
-          <button type="button" class="modal-close" id="dash-modal-bill-close">&times;</button>
+      <div class="modal-dialog">
+        <!-- Full-screen Header with Big Back Button -->
+        <div class="dash-bill-fullscreen-header">
+          <button type="button" class="dash-bill-back-btn" id="dash-modal-bill-back" title="Back to Dashboard" aria-label="Back to Dashboard">
+            <svg class="dash-bill-back-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </button>
+          <div class="dash-bill-header-text">
+            <h2 class="dash-bill-header-title">🧾 New Bill & Invoice</h2>
+            <span class="dash-bill-header-sub">Review items, customer info & generate invoice</span>
+          </div>
         </div>
-        <form id="dash-bill-form" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; margin: 0;">
-          <div class="modal-body" style="overflow-y: auto; flex: 1; min-height: 0; padding: 20px;">
-            
-            <!-- Customer Mode Selection -->
-            <div class="form-group">
-              <label class="form-label">Customer Information <span style="font-weight: normal; color: var(--text-muted); font-size: 0.8rem;">(Optional - Walk-in uses "General")</span></label>
-              <div class="dash-cust-mode-pills">
-                <button type="button" class="dash-mode-pill active" id="dash-pill-existing">👤 Existing Customer</button>
-                <button type="button" class="dash-mode-pill" id="dash-pill-new">➕ Add New Customer</button>
-              </div>
 
-              <!-- Existing Customer Search & Dropdown -->
-              <div id="dash-existing-customer-box">
-                <div style="position: relative; margin-bottom: 8px;">
-                  <input type="text" id="dash-cust-search-input" class="form-control" placeholder="Search customer by name or phone..." autocomplete="off" />
+        <form id="dash-bill-form" style="display: flex; flex-direction: column; flex: 1; min-height: 0; margin: 0; overflow: hidden;">
+          <div class="dash-bill-scroll-body">
+            <div class="dash-bill-container">
+              
+              <!-- Customer Mode Selection Section -->
+              <div class="dash-bill-section-card">
+                <div class="dash-bill-section-title">
+                  <span>👤 Customer Information</span>
+                  <span style="font-weight: normal; color: var(--text-muted); font-size: 0.8rem;">(Optional - Walk-in uses "General")</span>
                 </div>
-                <select id="dash-bill-customer-select" class="form-control">
-                  <option value="">-- General / Walk-in Customer (Default) --</option>
-                </select>
-                <div id="dash-cust-search-feedback" style="display: none; margin-top: 8px; font-size: 0.82rem; padding: 8px 12px; background: var(--surface-alt); border-radius: var(--radius-sm); border: 1px dashed var(--border); color: var(--text-muted); justify-content: space-between; align-items: center;">
-                  <span>No matching customer found.</span>
-                  <button type="button" class="btn btn-xs btn-outline" id="dash-btn-inline-add-cust" style="font-size: 0.75rem; padding: 2px 8px; font-weight: 600;">+ Add New Customer</button>
+                
+                <div class="dash-cust-mode-pills">
+                  <button type="button" class="dash-mode-pill active" id="dash-pill-existing">👤 Existing Customer</button>
+                  <button type="button" class="dash-mode-pill" id="dash-pill-new">➕ Add New Customer</button>
                 </div>
-              </div>
 
-              <!-- New Customer Fields -->
-              <div id="dash-new-customer-box" style="display: none;">
-                <div class="form-group" style="margin-bottom: 10px;">
-                  <input type="text" id="dash-new-cust-name" class="form-control" placeholder="Customer Name (Optional - empty uses General)" />
-                </div>
-                <div class="form-row">
-                  <div class="form-group flex-1" style="margin-bottom: 0;">
-                    <input type="text" id="dash-new-cust-phone" class="form-control" placeholder="Phone Number" />
+                <!-- Existing Customer Search & Dropdown -->
+                <div id="dash-existing-customer-box">
+                  <div style="position: relative; margin-bottom: 8px;">
+                    <input type="text" id="dash-cust-search-input" class="form-control" placeholder="Search customer by name or phone..." autocomplete="off" />
                   </div>
-                  <div class="form-group flex-1" style="margin-bottom: 0;">
-                    <input type="text" id="dash-new-cust-address" class="form-control" placeholder="Address / City" />
+                  <select id="dash-bill-customer-select" class="form-control">
+                    <option value="">-- General / Walk-in Customer (Default) --</option>
+                  </select>
+                  <div id="dash-cust-search-feedback" style="display: none; margin-top: 8px; font-size: 0.82rem; padding: 8px 12px; background: var(--surface-alt); border-radius: var(--radius-sm); border: 1px dashed var(--border); color: var(--text-muted); justify-content: space-between; align-items: center;">
+                    <span>No matching customer found.</span>
+                    <button type="button" class="btn btn-xs btn-outline" id="dash-btn-inline-add-cust" style="font-size: 0.75rem; padding: 2px 8px; font-weight: 600;">+ Add New Customer</button>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <!-- Bill Line Items Summary Table -->
-            <div class="form-group">
-              <label class="form-label">Cart Line Items</label>
-              <div class="table-responsive" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm);">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Product</th>
-                      <th class="text-right">Price</th>
-                      <th class="text-center">Qty</th>
-                      <th class="text-right">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody id="dash-bill-items-body">
-                    <!-- Populated dynamically -->
-                  </tbody>
-                </table>
+                <!-- New Customer Fields -->
+                <div id="dash-new-customer-box" style="display: none;">
+                  <div class="form-group" style="margin-bottom: 10px;">
+                    <input type="text" id="dash-new-cust-name" class="form-control" placeholder="Customer Name (Optional - empty uses General)" />
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group flex-1" style="margin-bottom: 0;">
+                      <input type="text" id="dash-new-cust-phone" class="form-control" placeholder="Phone Number" />
+                    </div>
+                    <div class="form-group flex-1" style="margin-bottom: 0;">
+                      <input type="text" id="dash-new-cust-address" class="form-control" placeholder="Address / City" />
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <!-- Discount Section -->
-            <div class="form-group" style="margin-top: 14px; margin-bottom: 14px;">
-              <label class="form-label" style="font-weight: 600;">Discount (Optional)</label>
-              <div class="form-row" style="display: flex; gap: 10px;">
-                <div class="flex-1" style="flex: 1;">
-                  <label class="form-label text-xs text-muted" for="dash-bill-discount-type" style="margin-bottom: 4px;">Discount Type</label>
-                  <select id="dash-bill-discount-type" class="form-control" style="cursor: pointer;">
-                    <option value="amount" selected>Amount (Rs.)</option>
-                    <option value="percentage">Percentage (%)</option>
+              <!-- Bill Line Items Summary Table Section -->
+              <div class="dash-bill-section-card">
+                <div class="dash-bill-section-title">
+                  <span>🛒 Cart Line Items</span>
+                </div>
+                <div class="table-responsive" style="max-height: 260px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th class="text-right">Price</th>
+                        <th class="text-center">Qty</th>
+                        <th class="text-right">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody id="dash-bill-items-body">
+                      <!-- Populated dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Discount & Payment Details Section -->
+              <div class="dash-bill-section-card">
+                <div class="dash-bill-section-title">
+                  <span>🏷️ Discount & Payment</span>
+                </div>
+
+                <!-- Discount Section -->
+                <div class="form-group" style="margin-bottom: 14px;">
+                  <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">Discount (Optional)</label>
+                  <div class="form-row" style="display: flex; gap: 10px;">
+                    <div class="flex-1" style="flex: 1;">
+                      <label class="form-label text-xs text-muted" for="dash-bill-discount-type" style="margin-bottom: 4px;">Discount Type</label>
+                      <select id="dash-bill-discount-type" class="form-control" style="cursor: pointer;">
+                        <option value="amount" selected>Amount (Rs.)</option>
+                        <option value="percentage">Percentage (%)</option>
+                      </select>
+                    </div>
+                    <div class="flex-1" style="flex: 1;">
+                      <label class="form-label text-xs text-muted" for="dash-bill-discount-value" style="margin-bottom: 4px;">Discount Value</label>
+                      <input type="number" id="dash-bill-discount-value" class="form-control" placeholder="0" min="0" step="any" value="0" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Payment Status Selection -->
+                <div class="form-group" style="margin-bottom: 16px;">
+                  <label class="form-label" for="dash-bill-payment-status" style="font-weight: 600; font-size: 0.88rem;">Payment Status *</label>
+                  <select id="dash-bill-payment-status" class="form-control" style="font-weight: 600; cursor: pointer;">
+                    <option value="Pending" selected>⏳ Pending</option>
+                    <option value="Paid">✅ Paid</option>
                   </select>
                 </div>
-                <div class="flex-1" style="flex: 1;">
-                  <label class="form-label text-xs text-muted" for="dash-bill-discount-value" style="margin-bottom: 4px;">Discount Value</label>
-                  <input type="number" id="dash-bill-discount-value" class="form-control" placeholder="0" min="0" step="any" value="0" />
+
+                <!-- Grand Total Display Bar -->
+                <div class="sale-summary-bar" style="background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 6px; padding: 14px 18px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 0.95rem; color: #374151;">
+                    <span>Subtotal:</span>
+                    <span id="dash-bill-subtotal" class="font-semibold" style="color: #1f2937;">₹ 0.00</span>
+                  </div>
+                  <div id="dash-bill-discount-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 0.95rem; color: #dc2626;">
+                    <span>Discount:</span>
+                    <span id="dash-bill-discount-amount" class="font-semibold">-₹ 0.00</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-top: 1px dashed #a7f3d0; padding-top: 8px; margin-top: 2px;">
+                    <span class="font-bold" style="color: #065f46; font-size: 1.1rem;">Grand Total:</span>
+                    <span id="dash-bill-grand-total" class="font-bold" style="font-size: 1.4rem; color: #059669;">₹ 0.00</span>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <!-- Grand Total Display Bar -->
-            <div class="sale-summary-bar" style="background: #f0fdf4; border-color: #a7f3d0; display: flex; flex-direction: column; gap: 6px; padding: 12px 16px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 0.92rem; color: #374151;">
-                <span>Subtotal:</span>
-                <span id="dash-bill-subtotal" class="font-semibold" style="color: #1f2937;">₹ 0.00</span>
               </div>
-              <div id="dash-bill-discount-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 0.92rem; color: #dc2626;">
-                <span>Discount:</span>
-                <span id="dash-bill-discount-amount" class="font-semibold">-₹ 0.00</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-top: 1px dashed #a7f3d0; padding-top: 8px; margin-top: 2px;">
-                <span class="font-bold" style="color: #065f46; font-size: 1.05rem;">Grand Total:</span>
-                <span id="dash-bill-grand-total" class="font-bold" style="font-size: 1.35rem; color: #059669;">₹ 0.00</span>
-              </div>
-            </div>
 
-            <!-- Payment Status Selection -->
-            <div class="form-group" style="margin-top: 16px; margin-bottom: 0;">
-              <label class="form-label" for="dash-bill-payment-status" style="font-weight: 600;">Payment Status *</label>
-              <select id="dash-bill-payment-status" class="form-control" style="font-weight: 600; cursor: pointer;">
-                <option value="Pending" selected>⏳ Pending</option>
-                <option value="Paid">✅ Paid</option>
-              </select>
             </div>
-
           </div>
-          <div class="modal-footer" style="flex-shrink: 0; position: sticky; bottom: 0; z-index: 10;">
-            <button type="button" class="btn btn-outline" id="dash-btn-cancel-bill">Cancel</button>
-            <button type="submit" class="btn btn-primary" id="dash-btn-confirm-bill" style="background-color: #059669; border-color: #059669;">
-              📄 Confirm & Generate Invoice
-            </button>
+
+          <!-- Sticky Footer Action Bar -->
+          <div class="dash-bill-fullscreen-footer">
+            <div class="dash-bill-footer-inner">
+              <button type="button" class="btn btn-outline" id="dash-btn-cancel-bill">Cancel</button>
+              <button type="submit" class="btn btn-primary" id="dash-btn-confirm-bill" style="background-color: #059669; border-color: #059669; padding: 10px 24px; font-weight: 700; font-size: 0.95rem;">
+                📄 Confirm & Generate Invoice
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -471,6 +675,7 @@ const Dashboard = {
     document.body.appendChild(modal);
 
     // Bind modal events
+    const backBtn = document.getElementById('dash-modal-bill-back');
     const closeBtn = document.getElementById('dash-modal-bill-close');
     const cancelBtn = document.getElementById('dash-btn-cancel-bill');
     const pillExisting = document.getElementById('dash-pill-existing');
@@ -481,6 +686,7 @@ const Dashboard = {
     const discountTypeSelect = document.getElementById('dash-bill-discount-type');
     const discountValueInput = document.getElementById('dash-bill-discount-value');
 
+    if (backBtn) backBtn.addEventListener('click', () => this.closeBillModal());
     if (closeBtn) closeBtn.addEventListener('click', () => this.closeBillModal());
     if (cancelBtn) cancelBtn.addEventListener('click', () => this.closeBillModal());
 
