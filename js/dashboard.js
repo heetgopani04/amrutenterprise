@@ -619,11 +619,16 @@ const Dashboard = {
 
                 <!-- Payment Status Selection -->
                 <div class="form-group" style="margin-bottom: 16px;">
-                  <label class="form-label" for="dash-bill-payment-status" style="font-weight: 600; font-size: 0.88rem;">Payment Status *</label>
-                  <select id="dash-bill-payment-status" class="form-control" style="font-weight: 600; cursor: pointer;">
-                    <option value="Pending" selected>⏳ Pending</option>
-                    <option value="Paid">✅ Paid</option>
-                  </select>
+                  <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">Payment Status *</label>
+                  <div class="dash-payment-toggle-group" style="display: flex; gap: 10px; margin-top: 4px;">
+                    <button type="button" class="dash-payment-btn" id="dash-btn-status-pending" data-status="Pending" style="flex: 1; padding: 10px 14px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: 0.92rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease; background: #dc2626; color: #ffffff; border: 1px solid #dc2626;">
+                      ⏳ Pending
+                    </button>
+                    <button type="button" class="dash-payment-btn" id="dash-btn-status-paid" data-status="Paid" style="flex: 1; padding: 10px 14px; border-radius: var(--radius-sm, 6px); font-weight: 600; font-size: 0.92rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease; background: #ffffff; color: #64748b; border: 1px solid #cbd5e1;">
+                      ✅ Paid
+                    </button>
+                  </div>
+                  <input type="hidden" id="dash-bill-payment-status" value="Pending" />
                 </div>
 
                 <!-- Grand Total Display Bar -->
@@ -711,8 +716,64 @@ const Dashboard = {
       });
     }
 
+    const btnStatusPending = document.getElementById('dash-btn-status-pending');
+    const btnStatusPaid = document.getElementById('dash-btn-status-paid');
+
+    if (btnStatusPending) {
+      btnStatusPending.addEventListener('click', () => {
+        this.setPaymentStatus('Pending');
+      });
+    }
+
+    if (btnStatusPaid) {
+      btnStatusPaid.addEventListener('click', () => {
+        this.setPaymentStatus('Paid');
+      });
+    }
+
     if (billForm) {
       billForm.addEventListener('submit', (e) => this.handleConfirmSale(e));
+    }
+  },
+
+  setPaymentStatus(status) {
+    const hiddenInput = document.getElementById('dash-bill-payment-status');
+    if (hiddenInput) hiddenInput.value = status;
+
+    const btnPending = document.getElementById('dash-btn-status-pending');
+    const btnPaid = document.getElementById('dash-btn-status-paid');
+
+    if (status === 'Paid') {
+      if (btnPaid) {
+        btnPaid.style.background = '#059669';
+        btnPaid.style.color = '#ffffff';
+        btnPaid.style.border = '1px solid #059669';
+        btnPaid.style.fontWeight = '700';
+        btnPaid.style.boxShadow = '0 2px 4px rgba(5, 150, 105, 0.2)';
+      }
+      if (btnPending) {
+        btnPending.style.background = '#ffffff';
+        btnPending.style.color = '#64748b';
+        btnPending.style.border = '1px solid #cbd5e1';
+        btnPending.style.fontWeight = '600';
+        btnPending.style.boxShadow = 'none';
+      }
+    } else {
+      // Pending is active (default)
+      if (btnPending) {
+        btnPending.style.background = '#dc2626';
+        btnPending.style.color = '#ffffff';
+        btnPending.style.border = '1px solid #dc2626';
+        btnPending.style.fontWeight = '700';
+        btnPending.style.boxShadow = '0 2px 4px rgba(220, 38, 38, 0.2)';
+      }
+      if (btnPaid) {
+        btnPaid.style.background = '#ffffff';
+        btnPaid.style.color = '#64748b';
+        btnPaid.style.border = '1px solid #cbd5e1';
+        btnPaid.style.fontWeight = '600';
+        btnPaid.style.boxShadow = 'none';
+      }
     }
   },
 
@@ -1035,7 +1096,7 @@ const Dashboard = {
     if (nameInput) nameInput.value = '';
     if (phoneInput) phoneInput.value = '';
     if (addrInput) addrInput.value = '';
-    if (statusSelect) statusSelect.value = 'Pending';
+    this.setPaymentStatus('Pending');
     if (discountValueInput) discountValueInput.value = '0';
 
     // Populate cart items review table

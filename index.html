@@ -744,11 +744,16 @@
 
           <!-- Payment Status Selection -->
           <div class="form-group" style="margin-top: 14px;">
-            <label class="form-label" for="sale-payment-status" style="font-weight: 600;">Payment Status *</label>
-            <select id="sale-payment-status" class="form-control" style="font-weight: 600; cursor: pointer;">
-              <option value="Pending" selected>⏳ Pending</option>
-              <option value="Paid">✅ Paid</option>
-            </select>
+            <label class="form-label" style="font-weight: 600;">Payment Status *</label>
+            <div class="sale-payment-toggle-wrap" style="display: flex; gap: 10px; margin-top: 4px;">
+              <button type="button" class="btn-sale-status" id="sale-btn-status-pending" data-status="Pending" style="flex: 1; padding: 8px 12px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease; background: #dc2626; color: #ffffff; border: 1px solid #dc2626;">
+                ⏳ Pending
+              </button>
+              <button type="button" class="btn-sale-status" id="sale-btn-status-paid" data-status="Paid" style="flex: 1; padding: 8px 12px; border-radius: var(--radius-sm, 6px); font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease; background: #ffffff; color: #64748b; border: 1px solid #cbd5e1;">
+                ✅ Paid
+              </button>
+            </div>
+            <input type="hidden" id="sale-payment-status" value="Pending" />
           </div>
         </div>
         <div class="modal-footer">

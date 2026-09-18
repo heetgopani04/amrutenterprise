@@ -55,6 +55,39 @@ const InvoiceGenerator = {
     doc.setFillColor(...primaryGreen);
     doc.rect(0, 0, pageWidth, 6, 'F');
 
+    // ==========================================
+    // SEMI-TRANSPARENT DIAGONAL WATERMARK
+    // ==========================================
+    const statusUpper = (sale.paymentStatus || sale.status || 'Pending').toUpperCase();
+    const isPaid = statusUpper === 'PAID';
+    const watermarkText = isPaid ? 'PAID' : 'PENDING';
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const centerX = pageWidth / 2;
+    const centerY = (pageHeight / 2) + 10;
+
+    try {
+      if (typeof doc.GState === 'function') {
+        doc.saveGraphicsState();
+        doc.setGState(new doc.GState({ opacity: 0.16 }));
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(isPaid ? 72 : 56);
+        doc.setTextColor(isPaid ? 16 : 239, isPaid ? 185 : 68, isPaid ? 129 : 68);
+        doc.text(watermarkText, centerX, centerY, { align: 'center', baseline: 'middle', angle: 45 });
+        doc.restoreGraphicsState();
+      } else {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(isPaid ? 72 : 56);
+        doc.setTextColor(isPaid ? 209 : 254, isPaid ? 250 : 226, isPaid ? 229 : 226);
+        doc.text(watermarkText, centerX, centerY, { align: 'center', baseline: 'middle', angle: 45 });
+      }
+    } catch (err) {
+      console.warn('Watermark rendering fallback:', err);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(isPaid ? 72 : 56);
+      doc.setTextColor(isPaid ? 209 : 254, isPaid ? 250 : 226, isPaid ? 229 : 226);
+      doc.text(watermarkText, centerX, centerY, { align: 'center', baseline: 'middle', angle: 45 });
+    }
+
     // Store Title
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(20);
@@ -112,7 +145,7 @@ const InvoiceGenerator = {
     if (status === 'PAID') {
       doc.setTextColor(...primaryGreen);
     } else {
-      doc.setTextColor(217, 119, 6); // Amber / Pending
+      doc.setTextColor(220, 38, 38); // Red / Pending
     }
     doc.text(status, pageWidth - 14, metaY + 10, { align: 'right' });
     doc.setTextColor(51, 65, 85);

@@ -44,6 +44,57 @@ const Sales = {
     if (searchInput) {
       searchInput.addEventListener('input', () => this.renderSalesList());
     }
+
+    const btnStatusPending = document.getElementById('sale-btn-status-pending');
+    const btnStatusPaid = document.getElementById('sale-btn-status-paid');
+
+    if (btnStatusPending) {
+      btnStatusPending.addEventListener('click', () => {
+        this.setPaymentStatus('Pending');
+      });
+    }
+
+    if (btnStatusPaid) {
+      btnStatusPaid.addEventListener('click', () => {
+        this.setPaymentStatus('Paid');
+      });
+    }
+  },
+
+  setPaymentStatus(status) {
+    const hiddenInput = document.getElementById('sale-payment-status');
+    if (hiddenInput) hiddenInput.value = status;
+
+    const btnPending = document.getElementById('sale-btn-status-pending');
+    const btnPaid = document.getElementById('sale-btn-status-paid');
+
+    if (status === 'Paid') {
+      if (btnPaid) {
+        btnPaid.style.background = '#059669';
+        btnPaid.style.color = '#ffffff';
+        btnPaid.style.border = '1px solid #059669';
+        btnPaid.style.fontWeight = '700';
+      }
+      if (btnPending) {
+        btnPending.style.background = '#ffffff';
+        btnPending.style.color = '#64748b';
+        btnPending.style.border = '1px solid #cbd5e1';
+        btnPending.style.fontWeight = '600';
+      }
+    } else {
+      if (btnPending) {
+        btnPending.style.background = '#dc2626';
+        btnPending.style.color = '#ffffff';
+        btnPending.style.border = '1px solid #dc2626';
+        btnPending.style.fontWeight = '700';
+      }
+      if (btnPaid) {
+        btnPaid.style.background = '#ffffff';
+        btnPaid.style.color = '#64748b';
+        btnPaid.style.border = '1px solid #cbd5e1';
+        btnPaid.style.fontWeight = '600';
+      }
+    }
   },
 
   // Open modal to create a new sale
@@ -56,8 +107,7 @@ const Sales = {
     this.currentSaleItems = [];
     this.populateCustomerDropdown();
 
-    const statusSelect = document.getElementById('sale-payment-status');
-    if (statusSelect) statusSelect.value = 'Pending';
+    this.setPaymentStatus('Pending');
 
     const itemsContainer = document.getElementById('sale-items-container');
     if (itemsContainer) {
@@ -588,14 +638,14 @@ const Sales = {
         statusBadgeHtml = `<span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; font-weight:700; font-size:0.78rem; padding:4px 10px;">↩️ Returned</span>`;
       } else if (hasPartialReturn) {
         statusBadgeHtml = `
-          <button type="button" class="btn-toggle-status badge ${isPaid ? 'badge-success' : 'badge-warning'}" data-id="${sale.id}" style="cursor: pointer; border: none; font-size: 0.78rem; padding: 4px 10px; font-weight: 700;" title="Click to toggle Paid / Pending">
+          <button type="button" class="btn-toggle-status badge ${isPaid ? 'badge-success' : 'badge-danger'}" data-id="${sale.id}" style="cursor: pointer; border: none; font-size: 0.78rem; padding: 4px 10px; font-weight: 700;" title="Click to toggle Paid / Pending">
             ${isPaid ? '✅ Paid' : '⏳ Pending'}
           </button>
           <span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; font-size:0.72rem; padding:2px 6px; margin-top:3px; display:inline-block;">↩️ Partial Return</span>
         `;
       } else {
         statusBadgeHtml = `
-          <button type="button" class="btn-toggle-status badge ${isPaid ? 'badge-success' : 'badge-warning'}" data-id="${sale.id}" style="cursor: pointer; border: none; font-size: 0.78rem; padding: 4px 10px; font-weight: 700;" title="Click to toggle Paid / Pending">
+          <button type="button" class="btn-toggle-status badge ${isPaid ? 'badge-success' : 'badge-danger'}" data-id="${sale.id}" style="cursor: pointer; border: none; font-size: 0.78rem; padding: 4px 10px; font-weight: 700;" title="Click to toggle Paid / Pending">
             ${isPaid ? '✅ Paid' : '⏳ Pending'}
           </button>
         `;
@@ -603,7 +653,7 @@ const Sales = {
 
       const actionStatusBadgeHtml = allItemsReturned
         ? `<span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; font-size:0.75rem; padding:4px 8px; font-weight:700;">↩️ Returned</span>`
-        : `<button type="button" class="btn-action-toggle-status badge ${isPaid ? 'badge-success' : 'badge-warning'}" data-id="${sale.id}" style="cursor: pointer; border: none; font-size: 0.75rem; padding: 4px 8px; font-weight: 700;" title="Click to toggle Paid / Pending">${isPaid ? '✅ Paid' : '⏳ Pending'}</button>`;
+        : `<button type="button" class="btn-action-toggle-status badge ${isPaid ? 'badge-success' : 'badge-danger'}" data-id="${sale.id}" style="cursor: pointer; border: none; font-size: 0.75rem; padding: 4px 8px; font-weight: 700;" title="Click to toggle Paid / Pending">${isPaid ? '✅ Paid' : '⏳ Pending'}</button>`;
 
       const actionReturnBtnHtml = allItemsReturned
         ? `<button type="button" class="btn btn-sm btn-outline" disabled style="opacity: 0.5; cursor: not-allowed;" title="All items in this sale have been returned">↩️ Returned</button>`

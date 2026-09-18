@@ -231,14 +231,14 @@ const Customers = {
             statusBadgeHtml = `<span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; font-weight:700; font-size:0.75rem; padding:3px 8px;">↩️ Returned</span>`;
           } else if (hasPartialReturn) {
             statusBadgeHtml = `
-              <button type="button" class="btn-profile-status-toggle badge ${isPaid ? 'badge-success' : 'badge-warning'}" data-sale-id="${sale.id}" style="cursor: pointer; border: none; font-size: 0.75rem; padding: 3px 8px; font-weight: 700;" title="Click to toggle Paid / Pending">
+              <button type="button" class="btn-profile-status-toggle badge ${isPaid ? 'badge-success' : 'badge-danger'}" data-sale-id="${sale.id}" style="cursor: pointer; border: none; font-size: 0.75rem; padding: 3px 8px; font-weight: 700;" title="Click to toggle Paid / Pending">
                 ${isPaid ? '✅ Paid' : '⏳ Pending'}
               </button>
               <span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; font-size:0.68rem; padding:1px 4px; margin-top:2px; display:inline-block;">↩️ Partial</span>
             `;
           } else {
             statusBadgeHtml = `
-              <button type="button" class="btn-profile-status-toggle badge ${isPaid ? 'badge-success' : 'badge-warning'}" data-sale-id="${sale.id}" style="cursor: pointer; border: none; font-size: 0.75rem; padding: 3px 8px; font-weight: 700;" title="Click to toggle Paid / Pending">
+              <button type="button" class="btn-profile-status-toggle badge ${isPaid ? 'badge-success' : 'badge-danger'}" data-sale-id="${sale.id}" style="cursor: pointer; border: none; font-size: 0.75rem; padding: 3px 8px; font-weight: 700;" title="Click to toggle Paid / Pending">
                 ${isPaid ? '✅ Paid' : '⏳ Pending'}
               </button>
             `;
@@ -246,7 +246,7 @@ const Customers = {
 
           const actionStatusBadgeHtml = allItemsReturned
             ? `<span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; font-size:0.72rem; padding:3px 7px; font-weight:700;">↩️ Returned</span>`
-            : `<button type="button" class="btn-profile-action-status-toggle badge ${isPaid ? 'badge-success' : 'badge-warning'}" data-sale-id="${sale.id}" style="cursor: pointer; border: none; font-size: 0.72rem; padding: 3px 7px; font-weight: 700;" title="Click to toggle Paid / Pending">${isPaid ? '✅ Paid' : '⏳ Pending'}</button>`;
+            : `<button type="button" class="btn-profile-action-status-toggle badge ${isPaid ? 'badge-success' : 'badge-danger'}" data-sale-id="${sale.id}" style="cursor: pointer; border: none; font-size: 0.72rem; padding: 3px 7px; font-weight: 700;" title="Click to toggle Paid / Pending">${isPaid ? '✅ Paid' : '⏳ Pending'}</button>`;
 
           const actionReturnBtnHtml = allItemsReturned
             ? `<button type="button" class="btn btn-sm btn-outline" disabled style="opacity: 0.5; cursor: not-allowed;" title="All items returned">↩️ Returned</button>`
